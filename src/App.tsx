@@ -1,24 +1,34 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useEffect, useState } from 'react';
 import './App.css';
+import data from './mockData/data'
+import DataTable from './components/dataTable'
+import { setValBykey, setMeanMedianMode, setValByCalculation } from './utils'
+import { rejects } from 'assert';
 
-function App() {
+
+const App: React.FC =  () => {
+  const [filteredData, setFilteredData] = useState<any>({});
+  const getSortedData = async () =>  {
+    const filterFlavanoids = await setValBykey(data, 'Alcohol', 'Flavanoids');
+    const getFlavMeanMedianMode = await setMeanMedianMode(filterFlavanoids,  'Flavanoids');
+    const calcGama = await setValByCalculation(data, 'Alcohol', 'Ash', 'Hue', 'Magnesium');
+    const getGamaMedianMode = await setMeanMedianMode(calcGama,  'Flavanoids');
+    setFilteredData({
+      "flavanoids": getFlavMeanMedianMode,
+      "gamma": getGamaMedianMode
+    })
+  }
+
+  useEffect(() => {
+    getSortedData()
+  }, [])
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {Object.keys(filteredData).length > 0 &&  Object.keys(filteredData).map((item) => <div>
+        {item === 'flavanoids' && <DataTable tData={filteredData[item]} tableTitle={"Measure"} categoryTitle="Flavanoids" />}
+        {item === 'gamma' && <DataTable tData={filteredData[item]} tableTitle={"Measure"} categoryTitle="Gamma" />}
+      </div>
+      )}
     </div>
   );
 }
